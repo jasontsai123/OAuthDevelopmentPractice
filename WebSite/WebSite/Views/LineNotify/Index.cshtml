@@ -1,0 +1,18 @@
+﻿@model LineNotifySubscriberViewModel
+@{
+    ViewData["Title"] = "Home Page";
+    var subscriber = Model ?? new LineNotifySubscriberViewModel();
+}
+
+<div class="text-center">
+    <h1 class="display-4">Line通知訂閱</h1>
+    @if (subscriber.HasSubscribed)
+    {
+        <a class="btn btn-outline-danger btn-lg" asp-area="" asp-controller="LineNotify" asp-action="Unsubscribe" role="button">取消訂閱</a>
+    }
+    else
+    {
+        <a class="btn btn-success btn-lg" asp-area="" asp-controller="LineNotify" asp-action="Subscribe" role="button">訂閱</a>
+    }
+
+</div>
