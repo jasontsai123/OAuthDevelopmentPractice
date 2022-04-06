@@ -14,10 +14,16 @@ keepAliveConnection.Open();
 builder.Services.AddDbContext<MemberContext>(options =>
     options.UseSqlite(keepAliveConnection));
 
-var app = builder.Build();
-
 builder.Services.AddScoped<ILineNotifySubscriberRepository, LineNotifySubscriberRepository>();
 
+var app = builder.Build();
+
+//確保Database不為Null
+using (var serviceScope = app.Services.GetService<IServiceScopeFactory>().CreateScope())
+{
+    var context = serviceScope.ServiceProvider.GetRequiredService<MemberContext>();
+    context.Database.EnsureCreated();
+}
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
