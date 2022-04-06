@@ -1,9 +1,22 @@
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using WebSite.Database;
+using WebSite.Repositories.LineNotifySubscriber;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+var connectionString = "Data Source=InMemorySample;Mode=Memory;Cache=Shared";
+var keepAliveConnection = new SqliteConnection(connectionString);
+keepAliveConnection.Open();
+builder.Services.AddDbContext<MemberContext>(options =>
+    options.UseSqlite(keepAliveConnection));
+
 var app = builder.Build();
+
+builder.Services.AddScoped<ILineNotifySubscriberRepository, LineNotifySubscriberRepository>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
