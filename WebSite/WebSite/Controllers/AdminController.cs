@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebSite.Database;
+using WebSite.Models;
+using WebSite.Repositories.LineNotify;
 using WebSite.Repositories.LineNotifySubscriber;
 
 namespace WebSite.Controllers
@@ -14,10 +16,34 @@ namespace WebSite.Controllers
     public class AdminController : Controller
     {
         private readonly MemberContext _context;
+        private readonly ILineNotifyApi _lineNotifyApi;
 
-        public AdminController(MemberContext context)
+        public AdminController(MemberContext context, ILineNotifyApi lineNotifyApi)
         {
             _context = context;
+            _lineNotifyApi = lineNotifyApi;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SendNotifyMessage()
+        {
+            ViewBag.IsSent = false;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendNotifyMessage([Bind("Title,Content")] SendNotifyMessage sendNotifyMessage)
+        {
+            var msg = @$"{sendNotifyMessage.Title} : 
+{sendNotifyMessage.Content}";
+            var notifyParameter = new NotifyParameter() { Message = msg };
+            foreach (var token in (await _context.LineNotifySubscribers.ToListAsync()).Select(x => x.AccessToken))
+            {
+                _lineNotifyApi.SendNotifyAsync(token, notifyParameter);
+            }
+
+            ViewBag.IsSent = true;
+            return View();
         }
 
         // GET: Admin
@@ -63,6 +89,7 @@ namespace WebSite.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             return View(lineNotifySubscriber);
         }
 
@@ -79,6 +106,7 @@ namespace WebSite.Controllers
             {
                 return NotFound();
             }
+
             return View(lineNotifySubscriber);
         }
 
@@ -112,8 +140,10 @@ namespace WebSite.Controllers
                         throw;
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(lineNotifySubscriber);
         }
 

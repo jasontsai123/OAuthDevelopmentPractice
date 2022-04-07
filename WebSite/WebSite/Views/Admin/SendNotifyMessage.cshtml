@@ -1,0 +1,156 @@
+﻿@{
+    ViewBag.Title = "Notify Message";
+  
+  bool isSent = ViewBag.IsSent;
+}
+<style>
+    html {
+      font-family: 'Lora', sans-serif;
+      width: 100%;
+    }
+    
+    h1 {
+      font-size: 28px;
+      margin-bottom: 2.5%;
+    }
+    
+    input,
+    span,
+    label,
+    textarea {
+      font-family: 'Ubuntu', sans-serif;
+      display: block;
+      margin: 10px;
+      padding: 5px;
+      border: none;
+      font-size: 22px;
+    }
+    
+    textarea:focus,
+    input:focus {
+      outline: 0;
+    }
+    /* Question */
+    
+    input.question,
+    textarea.question {
+      font-size: 48px;
+      font-weight: 300;
+      border-radius: 2px;
+      margin: 0;
+      border: none;
+      width: 80%;
+      background: rgba(0, 0, 0, 0);
+      transition: padding-top 0.2s ease, margin-top 0.2s ease;
+      overflow-x: hidden; /* Hack to make "rows" attribute apply in Firefox. */
+    }
+    /* Underline and Placeholder */
+    
+    input.question + label,
+    textarea.question + label {
+      display: block;
+      position: relative;
+      white-space: nowrap;
+      padding: 0;
+      margin: 0;
+      width: 10%;
+      border-top: 1px solid red;
+      -webkit-transition: width 0.4s ease;
+      transition: width 0.4s ease;
+      height: 0px;
+    }
+    
+    input.question:focus + label,
+    textarea.question:focus + label {
+      width: 80%;
+    }
+    
+    input.question:focus,
+    input.question:valid {
+      padding-top: 35px;
+    }
+    
+    textarea.question:valid,
+    textarea.question:focus {
+      margin-top: 35px;
+    }
+    
+    input.question:focus + label > span,
+    input.question:valid + label > span {
+      top: -100px;
+      font-size: 22px;
+      color: #333;
+    }
+    
+    textarea.question:focus + label > span,
+    textarea.question:valid + label > span {
+      top: -150px;
+      font-size: 22px;
+      color: #333;
+    }
+    
+    input.question:valid + label,
+    textarea.question:valid + label {
+      border-color: green;
+    }
+    
+    input.question:invalid,
+    textarea.question:invalid {
+      box-shadow: none;
+    }
+    
+    input.question + label > span,
+    textarea.question + label > span {
+      font-weight: 300;
+      margin: 0;
+      position: absolute;
+      color: #8F8F8F;
+      font-size: 48px;
+      top: -66px;
+      left: 0px;
+      z-index: -1;
+      -webkit-transition: top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+      transition: top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+    }
+    
+    input[type="submit"] {
+      font-family: 'Lora', sans-serif;
+      background: rgba(0, 0, 0, 0);
+      border: solid 1.5px #3B3B3B;
+      border-radius: 50px;
+      position: relative;
+      font-size: 24px;
+      display: block;
+      margin-top: 35px;
+      padding: 10px;
+      text-transform: uppercase;
+      transition: background 0.2s ease;
+      cursor: pointer;
+      text-align: center;
+      line-height: 35px;
+      width: 25%;
+      min-width: 250px;
+    }
+    
+    input[type="submit"]:hover {
+      transform: scaleX(1.2) scaleY(1.2);
+        transform-origin: 50% 50%;
+      font-size: 36px;
+    }
+    
+    input[type="submit"]:active {
+      background: #999;
+    }
+</style>
+<h1>Input Notify Message</h1>
+<form method="post" action="/Admin/SendNotifyMessage">
+  <input type="text" name="Title" class="question" id="Title" required autocomplete="off" />
+  <label for="Title"><span>What's your title?</span></label>
+  <textarea name="Content" rows="2" class="question" id="Content" required autocomplete="off"></textarea>
+  <label for="Content"><span>What's your message?</span></label>
+  <input type="submit" value="SEND" />
+</form>
+@if (isSent)
+{
+    <script>window.alert('訊息已送出!');</script>
+}

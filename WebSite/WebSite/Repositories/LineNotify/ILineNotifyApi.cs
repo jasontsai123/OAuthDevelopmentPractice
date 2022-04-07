@@ -18,4 +18,12 @@ public interface ILineNotifyApi
     /// <param name="accessToken">要撤銷的 access token</param>
     /// <returns>A task containing the revoke result</returns>
     Task<RevokeResult> RevokeAsync(string accessToken);
+
+    /// <summary>
+    /// Sends the notify using the specified access token
+    /// </summary>
+    /// <param name="accessToken">The access token</param>
+    /// <param name="notifyParameter">The notify parameter</param>
+    /// <returns>A task containing the notify result</returns>
+    Task<NotifyResult> SendNotifyAsync(string accessToken, NotifyParameter notifyParameter);
 }
