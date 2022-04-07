@@ -34,11 +34,22 @@ public class LineNotifyApi : ILineNotifyApi
         };
 
         var content = new FormUrlEncodedContent(values);
-        var url = "https://notify-bot.line.me/oauth/token";
+        const string url = "https://notify-bot.line.me/oauth/token";
         var response = await url
             .WithHeader("Content-Type", "application/x-www-form-urlencoded")
             .PostAsync(content);
         var result = await response.GetJsonAsync<LineNotifyOauthToken>();
         return result;
+    }
+    
+    /// <summary>
+    /// 撤銷 access token
+    /// </summary>
+    /// <param name="accessToken">要撤銷的 access token</param>
+    /// <returns>A task containing the revoke result</returns>
+    public async Task<RevokeResult> RevokeAsync(string accessToken)
+    {
+        const string url = "https://notify-api.line.me/api/revoke";
+        return await url.WithOAuthBearerToken(accessToken).GetJsonAsync<RevokeResult>();
     }
 }
