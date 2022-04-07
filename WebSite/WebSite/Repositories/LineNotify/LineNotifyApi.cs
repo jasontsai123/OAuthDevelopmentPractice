@@ -1,4 +1,5 @@
 using System.Text.Json;
+using WebSite.Setting;
 
 namespace WebSite.Repositories.LineNotify;
 
@@ -11,10 +12,15 @@ using Flurl.Http;
 public class LineNotifyApi : ILineNotifyApi
 {
     /// <summary>
+    /// LineNotify設定
+    /// </summary>
+    private readonly LineNotifySetting _lineNotifySetting;
+    /// <summary>
     /// Initializes a new instance of the <see cref="LineNotifyApi"/> class
     /// </summary>
-    public LineNotifyApi()
+    public LineNotifyApi(LineNotifySetting lineNotifySetting)
     {
+        _lineNotifySetting = lineNotifySetting;
     }
 
     /// <summary>
@@ -29,8 +35,8 @@ public class LineNotifyApi : ILineNotifyApi
             { "grant_type", parameter.GrantType ?? "authorization_code" },
             { "code", parameter.Code },
             { "redirect_uri", parameter.RedirectUri },
-            { "client_id", parameter.ClientId ?? "7u1Lu4cdIldcwOx9ueDBaJ" },
-            { "client_secret", parameter.ClientSecret ?? "lF22d9LXSZXj0AdYNkpoSLuRFU3OaOo8lVS4qDnmgJg" }
+            { "client_id", parameter.ClientId ?? _lineNotifySetting.ClientId },
+            { "client_secret", parameter.ClientSecret ?? _lineNotifySetting.ClientSecret }
         };
 
         var content = new FormUrlEncodedContent(values);

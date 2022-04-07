@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using WebSite.Database;
 using WebSite.Repositories.LineNotify;
 using WebSite.Repositories.LineNotifySubscriber;
+using WebSite.Setting;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,7 @@ builder.Services.AddDbContext<MemberContext>(options =>
 
 builder.Services.AddScoped<ILineNotifySubscriberRepository, LineNotifySubscriberRepository>();
 builder.Services.AddScoped<ILineNotifyApi, LineNotifyApi>();
+builder.Services.AddSingleton(builder.Configuration.GetSection("LineNotifySetting").Get<LineNotifySetting>());
 
 var app = builder.Build();
 

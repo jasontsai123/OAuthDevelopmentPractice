@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebSite.Models;
 using WebSite.Repositories.LineNotify;
 using WebSite.Repositories.LineNotifySubscriber;
+using WebSite.Setting;
 
 namespace WebSite.Controllers
 {
@@ -20,9 +21,15 @@ namespace WebSite.Controllers
     public class LineNotifyController : Controller
     {
         /// <summary>
+        /// LineNotify設定
+        /// </summary>
+        private readonly LineNotifySetting _lineNotifySetting;
+
+        /// <summary>
         /// The line notify api
         /// </summary>
         private readonly ILineNotifyApi _lineNotifyApi;
+
         /// <summary>
         /// The line notify subscriber repository
         /// </summary>
@@ -31,11 +38,11 @@ namespace WebSite.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="LineNotifyController"/> class
         /// </summary>
-        /// <param name="lineNotifyApi">The line notify api</param>
-        /// <param name="lineNotifySubscriberRepository">The line notify subscriber repository</param>
-        public LineNotifyController(ILineNotifyApi lineNotifyApi,
+        public LineNotifyController(LineNotifySetting lineNotifySetting,
+            ILineNotifyApi lineNotifyApi,
             ILineNotifySubscriberRepository lineNotifySubscriberRepository)
         {
+            _lineNotifySetting = lineNotifySetting;
             _lineNotifyApi = lineNotifyApi;
             _lineNotifySubscriberRepository = lineNotifySubscriberRepository;
         }
@@ -60,7 +67,7 @@ namespace WebSite.Controllers
             var url = "https://notify-bot.line.me/oauth/authorize".SetQueryParams(new
             {
                 response_type = "code",
-                client_id = "7u1Lu4cdIldcwOx9ueDBaJ",
+                client_id = _lineNotifySetting.ClientId,
                 redirect_uri = HttpContext.Request.GetDisplayUrl(),
                 scope = "notify",
                 state = new Random().Next(1, 999999),
