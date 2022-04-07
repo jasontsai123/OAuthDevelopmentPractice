@@ -27,6 +27,7 @@
 
     <ItemGroup>
       <Folder Include="Views\LineNotify" />
+      <Folder Include="Views\Login" />
     </ItemGroup>
 
 </Project>

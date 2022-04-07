@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using WebSite.Database;
+using WebSite.Repositories.LineLogin;
 using WebSite.Repositories.LineNotify;
 using WebSite.Repositories.LineNotifySubscriber;
 using WebSite.Setting;
@@ -24,7 +25,9 @@ builder.Services.AddDbContext<MemberContext>(options =>
 
 builder.Services.AddScoped<ILineNotifySubscriberRepository, LineNotifySubscriberRepository>();
 builder.Services.AddScoped<ILineNotifyApi, LineNotifyApi>();
+builder.Services.AddScoped<ILineLoginApi, LineLoginApi>();
 builder.Services.AddSingleton(builder.Configuration.GetSection("LineNotifySetting").Get<LineNotifySetting>());
+builder.Services.AddSingleton(builder.Configuration.GetSection("LineLoginSetting").Get<LineLoginSetting>());
 
 var app = builder.Build();
 

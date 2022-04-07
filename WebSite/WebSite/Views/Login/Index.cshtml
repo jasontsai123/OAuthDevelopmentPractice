@@ -1,0 +1,9 @@
+﻿@{
+    ViewData["Title"] = "Login";
+    string redirectUrl=ViewBag.RedirectUrl;
+}
+
+<div class="text-center">
+    <h1 class="display-4">登入</h1>
+    <a href="/Login/Line?redirectUrl=@(redirectUrl)"><img src="Image/btn_login_base.png"/></a>
+</div>
