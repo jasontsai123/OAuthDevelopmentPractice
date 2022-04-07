@@ -1,12 +1,19 @@
+using System.Text.Json;
+using Flurl.Http;
+using Flurl.Http.Configuration;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using WebSite.Database;
+using WebSite.Repositories.LineNotify;
 using WebSite.Repositories.LineNotifySubscriber;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddNewtonsoftJson();
 
 var connectionString = "Data Source=InMemorySample;Mode=Memory;Cache=Shared";
 var keepAliveConnection = new SqliteConnection(connectionString);
@@ -15,6 +22,7 @@ builder.Services.AddDbContext<MemberContext>(options =>
     options.UseSqlite(keepAliveConnection));
 
 builder.Services.AddScoped<ILineNotifySubscriberRepository, LineNotifySubscriberRepository>();
+builder.Services.AddScoped<ILineNotifyApi, LineNotifyApi>();
 
 var app = builder.Build();
 
@@ -24,6 +32,7 @@ using (var serviceScope = app.Services.GetService<IServiceScopeFactory>().Create
     var context = serviceScope.ServiceProvider.GetRequiredService<MemberContext>();
     context.Database.EnsureCreated();
 }
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
