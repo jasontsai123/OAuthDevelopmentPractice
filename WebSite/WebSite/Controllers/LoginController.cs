@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol;
 using WebSite.Repositories.LineLogin;
 using WebSite.Setting;
 
@@ -15,8 +17,11 @@ namespace WebSite.Controllers
     {
         private readonly LineLoginSetting _lineLoginSetting;
         private readonly ILineLoginApi _lineLoginApi;
+        private const string LineProfileSessionId = "LineProfile";
 
-        public LoginController(LineLoginSetting lineLoginSetting, ILineLoginApi lineLoginApi)
+        public LoginController(
+            LineLoginSetting lineLoginSetting,
+            ILineLoginApi lineLoginApi)
         {
             _lineLoginSetting = lineLoginSetting;
             _lineLoginApi = lineLoginApi;
@@ -63,6 +68,7 @@ namespace WebSite.Controllers
 
             var lineProfileResult = await _lineLoginApi.GetProfileAsync(lineOAuth2TokenResult.AccessToken);
 
+            HttpContext.Session.SetString(LineProfileSessionId, lineProfileResult.ToJson());
             var redirectUrl = TempData["RedirectUrl"]?.ToString() ?? "/";
             return Redirect(redirectUrl);
         }

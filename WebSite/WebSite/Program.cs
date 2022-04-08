@@ -16,7 +16,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = ".OauthDevelopmentPractice.Session";
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 
+});
 var connectionString = "Data Source=InMemorySample;Mode=Memory;Cache=Shared";
 var keepAliveConnection = new SqliteConnection(connectionString);
 keepAliveConnection.Open();
@@ -50,6 +57,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCookiePolicy();
+app.UseSession();
 
 app.UseAuthorization();
 

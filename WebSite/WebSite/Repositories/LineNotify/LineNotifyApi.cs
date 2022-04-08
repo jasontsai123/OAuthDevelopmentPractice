@@ -58,7 +58,11 @@ public class LineNotifyApi : ILineNotifyApi
     public async Task<RevokeResult> RevokeAsync(string accessToken)
     {
         const string url = "https://notify-api.line.me/api/revoke";
-        return await url.WithOAuthBearerToken(accessToken).GetJsonAsync<RevokeResult>();
+        var response = await url
+            .WithHeader("Content-Type", "application/x-www-form-urlencoded")
+            .WithOAuthBearerToken(accessToken)
+            .PostAsync();
+        return await response.GetJsonAsync<RevokeResult>();
     }
 
 
