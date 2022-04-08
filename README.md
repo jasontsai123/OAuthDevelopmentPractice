@@ -6,3 +6,5 @@
 - Notify訂閱
 - Notify取消訂閱
 - 發送訊息給訂閱者
+
+*資料儲存用EFCore SQLite in-memory的模式
