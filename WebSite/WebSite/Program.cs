@@ -16,14 +16,26 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options =>
-{
-    options.Cookie.Name = ".OauthDevelopmentPractice.Session";
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+// builder.Services.AddDistributedMemoryCache();
+// builder.Services.AddSession(options =>
+// {
+//     options.Cookie.Name = ".OauthDevelopmentPractice.Session";
+//     options.Cookie.SameSite = SameSiteMode.None;
+//     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+//
+// });
+const string authenticationScheme = ".OauthDevelopmentPractice.Auth";
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = authenticationScheme;
+    })
+    .AddCookie(authenticationScheme,options =>
+    {
+        options.Cookie.Name = authenticationScheme;
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    });
 
-});
 var connectionString = "Data Source=InMemorySample;Mode=Memory;Cache=Shared";
 var keepAliveConnection = new SqliteConnection(connectionString);
 keepAliveConnection.Open();
@@ -55,13 +67,11 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseCookiePolicy();
-app.UseSession();
-
+//app.UseSession();
 app.UseAuthorization();
+app.UseAuthentication();
+app.UseCookiePolicy();
 
 app.MapControllerRoute(
     name: "default",

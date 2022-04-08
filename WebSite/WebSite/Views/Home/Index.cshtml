@@ -1,8 +1,17 @@
-﻿@{
+﻿@using System.Security.Claims
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
+
+    <div class="profile-picture big-profile-picture clear">
+        <img width="150px" src="@(this.Context.User.FindFirstValue("PictureUrl"))" alt="@(Context.User.Identity?.Name)">
+    </div>
+    <h1 class="user-name">@(Context.User.Identity?.Name)</h1>
+    <div class="profile-description">
+        <p class="scnd-font-color">@(Context.User.FindFirstValue("StatusMessage"))</p>
+    </div>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>

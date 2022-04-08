@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Http.Extensions
+@using System.Security.Claims
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +37,14 @@
                         <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="SendNotifyMessage">送出訊息</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Login" asp-action="Index" asp-route-redirectUrl=@(Context.Request.GetDisplayUrl())>登入</a>
+                        @if (this.Context.User.Identity is { IsAuthenticated: true })
+                        {
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Logout" asp-action="Line">登出</a>
+                        }
+                        else
+                        {
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Login" asp-action="Index" asp-route-redirectUrl=@(Context.Request.GetDisplayUrl())>登入</a>
+                        }
                     </li>
                 </ul>
             </div>

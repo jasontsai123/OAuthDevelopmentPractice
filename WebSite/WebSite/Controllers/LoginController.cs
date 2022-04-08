@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Protocol;
@@ -17,7 +20,7 @@ namespace WebSite.Controllers
     {
         private readonly LineLoginSetting _lineLoginSetting;
         private readonly ILineLoginApi _lineLoginApi;
-        private const string LineProfileSessionId = "LineProfile";
+        private const string AuthenticationScheme = ".OauthDevelopmentPractice.Auth";
 
         public LoginController(
             LineLoginSetting lineLoginSetting,
@@ -64,11 +67,24 @@ namespace WebSite.Controllers
             var response = await tokenUrl
                 .WithHeader("Content-Type", "application/x-www-form-urlencoded")
                 .PostAsync(content);
-            var lineOAuth2TokenResult = await response.GetJsonAsync<LineOAuth2TokenResult>();
+            if (response.StatusCode == StatusCodes.Status200OK)
+            {
+                var lineOAuth2TokenResult = await response.GetJsonAsync<LineOAuth2TokenResult>();
+                var lineProfileResult = await _lineLoginApi.GetProfileAsync(lineOAuth2TokenResult.AccessToken);
+                var claims = new List<Claim>()
+                {
+                    new("AccessToken", lineOAuth2TokenResult.AccessToken),
+                    new(ClaimTypes.NameIdentifier, lineProfileResult.UserId),
+                    new(ClaimTypes.Name, lineProfileResult.DisplayName),
+                    new("PictureUrl", lineProfileResult.PictureUrl.OriginalString),
+                    new("StatusMessage", lineProfileResult.StatusMessage ?? string.Empty)
+                };
+                var claimsIdentity = new ClaimsIdentity(claims, AuthenticationScheme);
+                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+                await HttpContext.SignInAsync(claimsPrincipal);
+            }
 
-            var lineProfileResult = await _lineLoginApi.GetProfileAsync(lineOAuth2TokenResult.AccessToken);
 
-            HttpContext.Session.SetString(LineProfileSessionId, lineProfileResult.ToJson());
             var redirectUrl = TempData["RedirectUrl"]?.ToString() ?? "/";
             return Redirect(redirectUrl);
         }

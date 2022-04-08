@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
@@ -53,17 +54,12 @@ namespace WebSite.Controllers
         }
 
         /// <summary>
-        /// The line profile session id
-        /// </summary>
-        private const string LineProfileSessionId = "LineProfile";
-
-        /// <summary>
         /// Indexes this instance
         /// </summary>
         /// <returns>The action result</returns>
         public async Task<IActionResult> Index()
         {
-            if (HttpContext.Session.TryGetValue(LineProfileSessionId, out _) == false)
+            if (HttpContext.User.Identity is { IsAuthenticated: false })
             {
                 return Redirect($"/Login?redirectUrl={HttpContext.Request.GetDisplayUrl()}");
             }
@@ -72,12 +68,10 @@ namespace WebSite.Controllers
             {
                 HasSubscribed = false
             };
-            if (HttpContext.Session.TryGetValue(LineProfileSessionId, out _))
+            if (HttpContext.User.Identity is { IsAuthenticated: true })
             {
-                var json = HttpContext.Session.GetString(LineProfileSessionId);
-                var lineProfileResult = json.FromJson<LineProfileResult>();
                 var list = await _lineNotifySubscriberRepository.GetAllAsync();
-                vm.HasSubscribed = lineProfileResult.UserId == list?.FirstOrDefault()?.LineUserId;
+                vm.HasSubscribed = HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier) == list?.FirstOrDefault()?.LineUserId;
             }
 
             return View(vm);
@@ -115,9 +109,7 @@ namespace WebSite.Controllers
                 Code = lineNotifyAuthorize.Code,
                 RedirectUri = HttpContext.Request.GetDisplayUrl()
             });
-            var json = HttpContext.Session.GetString(LineProfileSessionId);
-            var lineProfileResult = json.FromJson<LineProfileResult>();
-            var affectRows = await _lineNotifySubscriberRepository.InsertAsync(new LineNotifySubscriber() { LineUserId = lineProfileResult.UserId, AccessToken = oauth.AccessToken });
+            var affectRows = await _lineNotifySubscriberRepository.InsertAsync(new LineNotifySubscriber() { LineUserId = HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier), AccessToken = oauth.AccessToken });
             var vm = new LineNotifySubscriberViewModel
             {
                 HasSubscribed = affectRows > 0
@@ -131,9 +123,9 @@ namespace WebSite.Controllers
         /// <returns>The action result</returns>
         public async Task<IActionResult> Unsubscribe()
         {
-            var lineProfileResult = HttpContext.Session.GetString(LineProfileSessionId).FromJson<LineProfileResult>();
-            var lineNotifySubscribers = (await _lineNotifySubscriberRepository.GetAllAsync()).Where(x => x.LineUserId == lineProfileResult.UserId);
-            var accessToken = lineNotifySubscribers.FirstOrDefault().AccessToken;
+            var lineProfileUserId = HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var lineNotifySubscribers = (await _lineNotifySubscriberRepository.GetAllAsync()).Where(x => x.LineUserId == lineProfileUserId);
+            var accessToken = lineNotifySubscribers.FirstOrDefault()?.AccessToken;
             await _lineNotifySubscriberRepository.DeleteByAccessTokenAsync(accessToken);
             var revokeResult = await _lineNotifyApi.RevokeAsync(accessToken);
             var vm = new LineNotifySubscriberViewModel
