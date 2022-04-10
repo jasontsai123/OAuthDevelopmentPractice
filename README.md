@@ -32,7 +32,8 @@ LINE Notify 和 LINE Login 基本上沒有連動關係，可將兩者視為獨�
 #### LINE Notify 開發
 ```
 Step 1 登入
-https://webhook.site/login
+https://webhook.site/login![2022-04-11_01h00_25](https://user-images.githubusercontent.com/31040621/162630827-aa80c13e-2170-4095-8eac-2daad72e46d4.png)
+
 
 Step 2 取得授權
 https://notify-bot.line.me/oauth/authorize?
@@ -71,8 +72,11 @@ Authorization: Bearer "ZpG6Tcn1X44Kfxxy5duLT7fertSz3UdveyicFLnSvJn"
 既然知道實作流程，把步驟往前推我覺得比較好切入開發。取得 AccessToken 之前要先取得授權碼Code  
 (client_id、client_secret 建立 Notify 頻道就取得所以這裡只剩 code 要關注)
 而 Code 是從`https://notify-bot.line.me/oauth/authorize`API導轉 Callback Url 把 Response 的資料帶過來，這裡多加了`response_mode = "form_post"`，把 Response 的資料 Post 到 CallbackUrl ，這樣參數就不會顯示在瀏覽器網址上，安全性更有保障。  
+
 然後開一個 Post 方法的 MVC Action 來接Code參數，將這個 Action 路由註冊為 Callback Url e.g.`https://localhost:5001/LineNotify/Subscribe`(這邊 Callback Action 路由命名 Callback 可能比較明確一些)，這個Action就負責註冊的邏輯，例如取得Token然後寫進資料庫。  
+
 POST `https://notify-bot.line.me/oauth/token` 取 Token，這裡有兩個重要的參數，一個是如同前面提到的授權碼Code，另一個很重要的是 redirect_uri ，這裡的 redirect 不會真的導轉，比較像是和 code 一樣要驗證的參數，就是前一個打`https://notify-bot.line.me/oauth/authorize` API 步驟授權的 Callback Url。  
+
 再來最後一個步驟(實際上是流程的第一步驟)透過`https://notify-bot.line.me/oauth/authorize`取得授權，對於開發上來說這段程式主要目的就是看要導轉到哪個 Callback ， 這個 API 只有 GET 方法，所以要直接寫在前端連結也是可以，這裡我是寫在 Subscribe 的 GET 方法裡，從前端訂閱按鈕連結到 Subscribe Action ， 再自己導轉到`https://notify-bot.line.me/oauth/authorize`。 state 參數隨便給個值不會影響功能實現，這個參數存在目的是為了防止 CSRF 攻擊，應該用程式產生不固定的值當參數 e.g. Random。
 之後的通播訊息和取消訂閱的功能都是 API 請求 Header 直接帶`Authorization Bearer <access_token>`就行。
 
@@ -89,4 +93,28 @@ POST https://notify-api.line.me/api/revoke
 複製網址請小心😒
 
 簡化從訂閱到推播和取消的流程
-`/oauth/authorize` --> `your callback url` --> `/oauth/token` --> `/api/notify` --> `/api/revoke`
+`/oauth/authorize` --> `callback url` --> `/oauth/token` --> `/api/notify` --> `/api/revoke`
+
+#### LINE Login 開發
+這裡要驗證登入的頁面不會直接導到 LINE Login 網站，一律都先在 Login 頁面按LINE登入按鈕登入，未來要加其他登入選則會比較方便擴充。
+
+程序上與 LINE Notify 大同小異，開發主要會用到以下 API
+https://developers.line.biz/en/reference/line-login/
+https://developers.line.biz/zh-hant/docs/line-login/integrate-line-login/
+```
+GET https://access.line.me/oauth2/v2.1/authorize
+POST https://api.line.me/oauth2/v2.1/token
+POST https://api.line.me/oauth2/v2.1/revoke
+GET https://api.line.me/v2/profile
+```
+
+流程
+`需要驗證的頁面` --> `/Login` --> `選擇登入方式` --> `/Line` --> `access.line.me/oauth2/v2.1/authorize` --> `callback url` --> `api.line.me/oauth2/v2.1/token` --> `api.line.me/v2/profile` --> `api.line.me/oauth2/v2.1/revoke`
+> callback Action 參數最好加上 `error` 會比較好 Debug
+
+有需要存取使用者 Email 需要另外申請許可  
+![LINE申請Email](https://user-images.githubusercontent.com/31040621/162631077-b0699cb0-fbdf-4f60-9586-32ab7d729be7.jpg)
+
+最後 Line Developer Channel 一定要確認是不是 Published 的狀態，不然會出現 `400 Bad Request`，真的很感謝其他同學提醒，不然不知道又要 Debug 多久XD
+![Line Developer的設定要記得調整成published](https://user-images.githubusercontent.com/31040621/162630838-3ab74b0d-ddc0-40e7-84d0-4a8893df5ee3.png)
+
