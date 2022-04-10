@@ -34,14 +34,16 @@ namespace WebSite.Controllers
         [HttpPost]
         public async Task<IActionResult> SendNotifyMessage([Bind("Title,Content")] SendNotifyMessage sendNotifyMessage)
         {
-            var msg = @$"{sendNotifyMessage.Title} : 
-{sendNotifyMessage.Content}";
+            var msg = @$"{sendNotifyMessage.Title} : {Environment.NewLine}{sendNotifyMessage.Content}";
             var notifyParameter = new NotifyParameter() { Message = msg };
+            var tasks = new List<Task<NotifyResult>>();
             foreach (var token in (await _context.LineNotifySubscribers.ToListAsync()).Select(x => x.AccessToken))
             {
-                _lineNotifyApi.SendNotifyAsync(token, notifyParameter);
+                tasks.Add(_lineNotifyApi.SendNotifyAsync(token, notifyParameter));
             }
 
+            await Task.WhenAll(tasks);
+            ViewBag.SentCount = tasks.Count(x => x.Result.Status == StatusCodes.Status200OK);
             ViewBag.IsSent = true;
             return View();
         }

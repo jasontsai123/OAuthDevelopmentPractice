@@ -1,7 +1,8 @@
 ﻿@{
     ViewBag.Title = "Notify Message";
-  
-  bool isSent = ViewBag.IsSent;
+
+    bool isSent = ViewBag.IsSent;
+    int sentCount = ViewBag.SentCount ?? 0;
 }
 <style>
     html {
@@ -144,13 +145,17 @@
 </style>
 <h1>Input Notify Message</h1>
 <form method="post" action="/Admin/SendNotifyMessage">
-  <input type="text" name="Title" class="question" id="Title" required autocomplete="off" />
-  <label for="Title"><span>What's your title?</span></label>
-  <textarea name="Content" rows="2" class="question" id="Content" required autocomplete="off"></textarea>
-  <label for="Content"><span>What's your message?</span></label>
-  <input type="submit" value="SEND" />
+    <input type="text" name="Title" class="question" id="Title" required autocomplete="off"/>
+    <label for="Title">
+        <span>What's your title?</span>
+    </label>
+    <textarea name="Content" rows="2" class="question" id="Content" required autocomplete="off"></textarea>
+    <label for="Content">
+        <span>What's your message?</span>
+    </label>
+    <input type="submit" value="SEND"/>
 </form>
-@if (isSent)
+@if (isSent && sentCount > 0)
 {
-    <script>window.alert('訊息已送出!');</script>
+    <script>window.alert('@(sentCount)筆 訊息已送出!');</script>
 }
