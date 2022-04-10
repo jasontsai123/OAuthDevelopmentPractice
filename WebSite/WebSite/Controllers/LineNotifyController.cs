@@ -53,6 +53,8 @@ namespace WebSite.Controllers
             _lineNotifySubscriberRepository = lineNotifySubscriberRepository;
         }
 
+        private const string NotifyAccessTokenSessionKey = "NotifyAccessToken";
+
         /// <summary>
         /// Indexes this instance
         /// </summary>
@@ -84,6 +86,11 @@ namespace WebSite.Controllers
         [HttpGet]
         public async Task<IActionResult> Subscribe()
         {
+            if (UserHasHasSubscribedNotify())
+            {
+                return RedirectToAction("Index");
+            }
+
             var url = "https://notify-bot.line.me/oauth/authorize".SetQueryParams(new
             {
                 response_type = "code",
@@ -102,14 +109,21 @@ namespace WebSite.Controllers
         /// <param name="lineNotifyAuthorize">The line notify authorize</param>
         /// <returns>A task containing the action result</returns>
         [HttpPost]
-        public async Task<ActionResult> Subscribe(LineNotifyAuthorize lineNotifyAuthorize)
+        public async Task<IActionResult> Subscribe(LineNotifyAuthorize lineNotifyAuthorize)
         {
+            if (UserHasHasSubscribedNotify())
+            {
+                return RedirectToAction("Index");
+            }
+
             var oauth = await _lineNotifyApi.GetOauthTokenAsync(new OauthTokenParameter
             {
                 Code = lineNotifyAuthorize.Code,
                 RedirectUri = HttpContext.Request.GetDisplayUrl()
             });
-            var affectRows = await _lineNotifySubscriberRepository.InsertAsync(new LineNotifySubscriber() { LineUserId = HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier), AccessToken = oauth.AccessToken });
+            HttpContext.Session.SetString(NotifyAccessTokenSessionKey, oauth.AccessToken);
+            var affectRows = await _lineNotifySubscriberRepository.InsertAsync(new LineNotifySubscriber()
+                { LineUserId = HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier), AccessToken = oauth.AccessToken });
             var vm = new LineNotifySubscriberViewModel
             {
                 HasSubscribed = affectRows > 0
@@ -126,13 +140,32 @@ namespace WebSite.Controllers
             var lineProfileUserId = HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
             var lineNotifySubscribers = (await _lineNotifySubscriberRepository.GetAllAsync()).Where(x => x.LineUserId == lineProfileUserId);
             var accessToken = lineNotifySubscribers.FirstOrDefault()?.AccessToken;
-            await _lineNotifySubscriberRepository.DeleteByAccessTokenAsync(accessToken);
+            if (accessToken is null)
+            {
+                return RedirectToAction("Index");
+            }
+
+            var deleteTokenAffectRows = await _lineNotifySubscriberRepository.DeleteByAccessTokenAsync(accessToken);
+            if (UserHasHasSubscribedNotify() && deleteTokenAffectRows > 0)
+            {
+                HttpContext?.Session.Remove(NotifyAccessTokenSessionKey);
+            }
+
             var revokeResult = await _lineNotifyApi.RevokeAsync(accessToken);
             var vm = new LineNotifySubscriberViewModel
             {
                 HasSubscribed = revokeResult.Status != StatusCodes.Status200OK
             };
             return View("Index", vm);
+        }
+
+        /// <summary>
+        /// 使用者已訂閱 LINE Notify
+        /// </summary>
+        /// <returns></returns>
+        private bool UserHasHasSubscribedNotify()
+        {
+            return HttpContext.Session.TryGetValue(NotifyAccessTokenSessionKey, out _);
         }
     }
 }
