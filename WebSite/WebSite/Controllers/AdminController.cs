@@ -36,11 +36,10 @@ namespace WebSite.Controllers
         {
             var msg = @$"{sendNotifyMessage.Title} : {Environment.NewLine}{sendNotifyMessage.Content}";
             var notifyParameter = new NotifyParameter() { Message = msg };
-            var tasks = new List<Task<NotifyResult>>();
-            foreach (var token in (await _context.LineNotifySubscribers.ToListAsync()).Select(x => x.AccessToken))
-            {
-                tasks.Add(_lineNotifyApi.SendNotifyAsync(token, notifyParameter));
-            }
+            var tasks = (await _context.LineNotifySubscribers.ToListAsync())
+                .Select(x => x.AccessToken)
+                .Select(token => _lineNotifyApi.SendNotifyAsync(token, notifyParameter))
+                .ToArray();
 
             await Task.WhenAll(tasks);
             ViewBag.SentCount = tasks.Count(x => x.Result.Status == StatusCodes.Status200OK);
