@@ -118,7 +118,7 @@ GET https://api.line.me/v2/profile
 最後 Line Developer Channel 一定要確認是不是 Published 的狀態，不然會出現 `400 Bad Request`，真的很感謝其他同學提醒，不然不知道又要 Debug 多久XD
 ![Line Developer的設定要記得調整成published](https://user-images.githubusercontent.com/31040621/162630838-3ab74b0d-ddc0-40e7-84d0-4a8893df5ee3.png)
 
-### 專案上開發的參考文章
+### 專案開發參考的文章
 https://stackoverflow.com/questions/56319638/entityframeworkcore-sqlite-in-memory-db-tables-are-not-created
 https://flurl.dev/
 https://stackoverflow.com/questions/4015324/how-to-make-an-http-post-web-request
